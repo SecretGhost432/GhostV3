@@ -1,26 +1,22 @@
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
+-- Function to highlight player in red color for Phantom Forces game
+local function highlightPlayer(player)
+    local highlightColor = Color3.fromRGB(255, 0, 0) -- Red color
+    local highlightDuration = 5 -- Highlight duration in seconds
 
-local function createESP(player)
-    local character = player.Character or player.CharacterAdded:Wait()
-    local highlight = Instance.new("Highlight")
-    highlight.Parent = character
-    highlight.FillColor = Color3.new(1, 0, 0)
-    highlight.OutlineColor = Color3.new(1, 1, 1)
-    highlight.FillTransparency = 0.5
-    highlight.OutlineTransparency = 0
+    -- Create a highlight effect for the player
+    local highlight = Instance.new("SelectionBox")
+    highlight.Color = highlightColor
+    highlight.LineThickness = 0.05
+    highlight.Adornee = player.Character.HumanoidRootPart
+    highlight.Parent = player.Character
+
+    -- Remove highlight after a certain duration
+    wait(highlightDuration)
+    highlight:Destroy()
 end
 
-local function refreshESP()
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= Players.LocalPlayer then
-            if player.Character then
-                createESP(player)
-            end
-        end
-    end
+-- Example: Highlight a specific player in red color
+local playerToHighlight = game.Players:GetPlayerByName("PlayerNameHere")
+if playerToHighlight then
+    highlightPlayer(playerToHighlight)
 end
-
-RunService.Heartbeat:Connect(function()
-    refreshESP()
-end)
