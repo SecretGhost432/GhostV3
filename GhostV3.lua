@@ -1,302 +1,219 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local Camera = workspace.CurrentCamera
 
--- Create the ScreenGui
+-- Create the main GUI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "HackGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = game.CoreGui
 
--- Create the main frame
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 200, 0, 250)
-mainFrame.Position = UDim2.new(0.5, -100, 0.5, -125)
-mainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+mainFrame.Size = UDim2.new(0, 220, 0, 270)
+mainFrame.Position = UDim2.new(0.5, -110, 0.5, -135)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
 mainFrame.Parent = screenGui
 
--- Create the scrolling frame
-local scrollFrame = Instance.new("ScrollingFrame")
-scrollFrame.Name = "ScrollFrame"
-scrollFrame.Size = UDim2.new(1, 0, 1, -30)  -- Subtract 30 for the title
-scrollFrame.Position = UDim2.new(0, 0, 0, 30)
-scrollFrame.BackgroundTransparency = 1
-scrollFrame.ScrollBarThickness = 8
-scrollFrame.Parent = mainFrame
+-- Add smooth corners to the main frame
+local mainFrameCorner = Instance.new("UICorner")
+mainFrameCorner.CornerRadius = UDim.new(0, 12)
+mainFrameCorner.Parent = mainFrame
 
--- Create the title
+-- Add a subtle shadow
+local shadow = Instance.new("ImageLabel")
+shadow.Name = "Shadow"
+shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+shadow.BackgroundTransparency = 1
+shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+shadow.Size = UDim2.new(1, 47, 1, 47)
+shadow.ZIndex = 0
+shadow.Image = "rbxassetid://6014261993"
+shadow.ImageColor3 = Color3.new(0, 0, 0)
+shadow.ImageTransparency = 0.5
+shadow.SliceCenter = Rect.new(49, 49, 450, 450)
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceScale = 1
+shadow.Parent = mainFrame
+
+-- Add falling stars
+local function createStar()
+    local star = Instance.new("Frame")
+    star.BackgroundColor3 = Color3.new(1, 1, 1)
+    star.BackgroundTransparency = 0.7
+    star.BorderSizePixel = 0
+    star.Size = UDim2.new(0, math.random(1, 2), 0, math.random(1, 2))
+    star.Position = UDim2.new(math.random(), 0, math.random(-0.5, 0), 0)
+    star.Parent = mainFrame
+    
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(1, 0)
+    uiCorner.Parent = star
+    
+    return star
+end
+
+local stars = {}
+for i = 1, 30 do
+    stars[i] = createStar()
+end
+
+RunService.RenderStepped:Connect(function(dt)
+    for _, star in ipairs(stars) do
+        star.Position = star.Position + UDim2.new(0, 0, dt * 0.03, 0)
+        if star.Position.Y.Scale > 1 then
+            star.Position = UDim2.new(math.random(), 0, -0.1, 0)
+        end
+    end
+end)
+
 local title = Instance.new("TextLabel")
 title.Name = "Title"
-title.Size = UDim2.new(1, 0, 0, 30)
+title.Size = UDim2.new(1, 0, 0, 40)
 title.BackgroundTransparency = 1
-title.Text = "GhostV3"
+title.Text = "Smooth Hack Menu"
 title.TextColor3 = Color3.new(1, 1, 1)
-title.TextSize = 18
-title.Font = Enum.Font.SourceSansBold
+title.TextSize = 24
+title.Font = Enum.Font.GothamBold
 title.Parent = mainFrame
 
--- Create the ESP button
-local espButton = Instance.new("TextButton")
-espButton.Name = "ESPButton"
-espButton.Size = UDim2.new(0.8, 0, 0, 30)
-espButton.Position = UDim2.new(0.1, 0, 0, 10)
-espButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-espButton.Text = "Enable ESP"
-espButton.TextColor3 = Color3.new(1, 1, 1)
-espButton.TextSize = 16
-espButton.Font = Enum.Font.SourceSansBold
-espButton.Parent = scrollFrame
+-- Create buttons
+local function createButton(name, position)
+    local button = Instance.new("TextButton")
+    button.Name = name .. "Button"
+    button.Size = UDim2.new(0.9, 0, 0, 40)
+    button.Position = UDim2.new(0.05, 0, 0, position)
+    button.BackgroundColor3 = Color3.fromRGB(75, 0, 130)
+    button.Text = name
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.TextSize = 18
+    button.Font = Enum.Font.GothamSemibold
+    button.Parent = mainFrame
+    
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(0, 8)
+    uiCorner.Parent = button
+    
+    local uiStroke = Instance.new("UIStroke")
+    uiStroke.Color = Color3.fromRGB(100, 25, 155)
+    uiStroke.Thickness = 1
+    uiStroke.Parent = button
+    
+    button.MouseEnter:Connect(function()
+        game:GetService("TweenService"):Create(button, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(95, 20, 150)}):Play()
+    end)
+    
+    button.MouseLeave:Connect(function()
+        game:GetService("TweenService"):Create(button, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(75, 0, 130)}):Play()
+    end)
+    
+    return button
+end
 
--- Create the Aimbot button
-local aimbotButton = Instance.new("TextButton")
-aimbotButton.Name = "AimbotButton"
-aimbotButton.Size = UDim2.new(0.5, 0, 0, 30)
-aimbotButton.Position = UDim2.new(0.1, 0, 0, 50)
-aimbotButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-aimbotButton.Text = "Enable Aimbot"
-aimbotButton.TextColor3 = Color3.new(1, 1, 1)
-aimbotButton.TextSize = 16
-aimbotButton.Font = Enum.Font.SourceSansBold
-aimbotButton.Parent = scrollFrame
-
--- Create the Aimbot keybind button
-local aimbotKeybindButton = Instance.new("TextButton")
-aimbotKeybindButton.Name = "AimbotKeybindButton"
-aimbotKeybindButton.Size = UDim2.new(0.3, 0, 0, 30)
-aimbotKeybindButton.Position = UDim2.new(0.65, 0, 0, 50)
-aimbotKeybindButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-aimbotKeybindButton.Text = "Set Key"
-aimbotKeybindButton.TextColor3 = Color3.new(1, 1, 1)
-aimbotKeybindButton.TextSize = 14
-aimbotKeybindButton.Font = Enum.Font.SourceSansBold
-aimbotKeybindButton.Parent = scrollFrame
-
--- Create the Aimbot sensitivity slider
-local aimbotSensitivitySlider = Instance.new("TextBox")
-aimbotSensitivitySlider.Name = "AimbotSensitivitySlider"
-aimbotSensitivitySlider.Size = UDim2.new(0.8, 0, 0, 30)
-aimbotSensitivitySlider.Position = UDim2.new(0.1, 0, 0, 110)
-aimbotSensitivitySlider.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-aimbotSensitivitySlider.Text = "50"
-aimbotSensitivitySlider.TextColor3 = Color3.new(1, 1, 1)
-aimbotSensitivitySlider.TextSize = 14
-aimbotSensitivitySlider.Font = Enum.Font.SourceSansBold
-aimbotSensitivitySlider.Parent = scrollFrame
-
-local sensitivityLabel = Instance.new("TextLabel")
-sensitivityLabel.Name = "SensitivityLabel"
-sensitivityLabel.Size = UDim2.new(0.8, 0, 0, 20)
-sensitivityLabel.Position = UDim2.new(0.1, 0, 0, 90)
-sensitivityLabel.BackgroundTransparency = 1
-sensitivityLabel.Text = "Aimbot Sensitivity"
-sensitivityLabel.TextColor3 = Color3.new(1, 1, 1)
-sensitivityLabel.TextSize = 14
-sensitivityLabel.Font = Enum.Font.SourceSans
-sensitivityLabel.Parent = scrollFrame
-
--- Create the Head button
-local headButton = Instance.new("TextButton")
-headButton.Name = "HeadButton"
-headButton.Size = UDim2.new(0.8, 0, 0, 30)
-headButton.Position = UDim2.new(0.1, 0, 0, 150)
-headButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-headButton.Text = "Head"
-headButton.TextColor3 = Color3.new(1, 1, 1)
-headButton.TextSize = 16
-headButton.Font = Enum.Font.SourceSansBold
-headButton.Parent = scrollFrame
-
--- Create the dropdown frame
-local dropdownFrame = Instance.new("Frame")
-dropdownFrame.Name = "DropdownFrame"
-dropdownFrame.Size = UDim2.new(0.8, 0, 0, 60)
-dropdownFrame.Position = UDim2.new(0.1, 0, 0, 180)
-dropdownFrame.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-dropdownFrame.Visible = false
-dropdownFrame.Parent = scrollFrame
-
--- Create the Head option
-local headOption = Instance.new("TextButton")
-headOption.Name = "HeadOption"
-headOption.Size = UDim2.new(1, 0, 0.5, 0)
-headOption.Position = UDim2.new(0, 0, 0, 0)
-headOption.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-headOption.Text = "Head"
-headOption.TextColor3 = Color3.new(1, 1, 1)
-headOption.TextSize = 14
-headOption.Font = Enum.Font.SourceSans
-headOption.Parent = dropdownFrame
-
--- Create the Legs option
-local legsOption = Instance.new("TextButton")
-legsOption.Name = "LegsOption"
-legsOption.Size = UDim2.new(1, 0, 0.5, 0)
-legsOption.Position = UDim2.new(0, 0, 0.5, 0)
-legsOption.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-legsOption.Text = "Legs"
-legsOption.TextColor3 = Color3.new(1, 1, 1)
-legsOption.TextSize = 14
-legsOption.Font = Enum.Font.SourceSans
-legsOption.Parent = dropdownFrame
-
--- Create the status label
-local statusLabel = Instance.new("TextLabel")
-statusLabel.Name = "StatusLabel"
-statusLabel.Size = UDim2.new(1, 0, 0, 20)
-statusLabel.Position = UDim2.new(0, 0, 1, -20)
-statusLabel.BackgroundTransparency = 1
-statusLabel.Text = "Cheat Not Active"
-statusLabel.TextColor3 = Color3.new(1, 1, 1)
-statusLabel.TextSize = 14
-statusLabel.Font = Enum.Font.SourceSans
-statusLabel.Parent = mainFrame
-
--- Create the Exploits label
-local exploitsLabel = Instance.new("TextLabel")
-exploitsLabel.Name = "ExploitsLabel"
-exploitsLabel.Size = UDim2.new(0.8, 0, 0, 30)
-exploitsLabel.Position = UDim2.new(0.1, 0, 0, 250)
-exploitsLabel.BackgroundTransparency = 1
-exploitsLabel.Text = "Exploits"
-exploitsLabel.TextColor3 = Color3.new(1, 1, 1)
-exploitsLabel.TextSize = 18
-exploitsLabel.Font = Enum.Font.SourceSansBold
-exploitsLabel.Parent = scrollFrame
-
--- Create the Instant Reload button
-local instantReloadButton = Instance.new("TextButton")
-instantReloadButton.Name = "InstantReloadButton"
-instantReloadButton.Size = UDim2.new(0.8, 0, 0, 30)
-instantReloadButton.Position = UDim2.new(0.1, 0, 0, 290)
-instantReloadButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-instantReloadButton.Text = "Instant Reload"
-instantReloadButton.TextColor3 = Color3.new(1, 1, 1)
-instantReloadButton.TextSize = 16
-instantReloadButton.Font = Enum.Font.SourceSansBold
-instantReloadButton.Parent = scrollFrame
+local silentAimbotButton = createButton("Silent Aimbot", 50)
+local espButton = createButton("ESP", 100)
+local chamsButton = createButton("Chams", 150)
+local instantReloadButton = createButton("Instant Reload", 200)
 
 -- Variables
-local dragging = false
-local dragStart = nil
-local startPos = nil
+local silentAimbotEnabled = false
 local espEnabled = false
-local aimbotEnabled = false
-local aimbotKeybind = Enum.KeyCode.E  -- Default keybind
-local aimbotSensitivity = 50  -- Default sensitivity
-local aimbotTarget = "Head"  -- Default target
+local chamsEnabled = false
+local instantReloadEnabled = false
+local chamsConnection
 
--- Create FOV Circle
-local fovCircle = Drawing.new("Circle")
-fovCircle.Visible = false
-fovCircle.Radius = 100
-fovCircle.Color = Color3.new(1, 1, 1)
-fovCircle.Thickness = 1
-fovCircle.Filled = false
-fovCircle.Transparency = 1
-fovCircle.NumSides = 60
-
--- ESP function
-local function runESP()
-    print("ESP PF Initialized.")
-    enemyteam = game.Workspace.Players:GetChildren()[1]
-    friendlyteam = game.Workspace.Players:GetChildren()[2]
-    while espEnabled do
-        for _,v in enemyteam:GetDescendants() do
-            if v.ClassName == "Model" then
-                if not v:FindFirstChild("Highlight") then
-                    local h = Instance.new("Highlight",v)
-                    h.FillColor = Color3.new(1,0,0)
-                    h.FillTransparency = 0.4
-                    print(string.format("Highlighted %s",v.Name))
+-- Functions
+local function toggleSilentAimbot()
+    silentAimbotEnabled = not silentAimbotEnabled
+    silentAimbotButton.Text = "Silent Aimbot " .. (silentAimbotEnabled and "[ON]" or "[OFF]")
+    
+    if silentAimbotEnabled then
+        local players = game:GetService("Players")
+        local player = players.LocalPlayer
+        
+        function ClosestPlayer()
+            local plr
+            local closest = math.huge
+            if player.Team == nil then
+                for i,v in next, players:GetPlayers() do
+                    if v ~= player and v.Character and v.Character.Humanoid.Health > 0 then
+                        local mag = (player.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+                        if mag < closest then
+                            closest = mag
+                            plr = v
+                        end
+                    end
                 end
-            end
-        end
-        for _,v in friendlyteam:GetDescendants() do
-            if v.ClassName == "Model" then
-                if not v:FindFirstChild("Highlight") then
-                    local h = Instance.new("Highlight",v)
-                    h.FillColor = Color3.new(0.227451, 1, 0.054902)
-                    h.FillTransparency = 0.8
-                    print(string.format("Highlighted %s",v.Name))
-                end
-            end
-        end
-        wait(0.1)
-    end
-end
-
--- Function to get closest player in FOV
-local function getClosestPlayerInFOV()
-    local closestPlayer = nil
-    local closestDistance = math.huge
-    local mousePos = UserInputService:GetMouseLocation()
-
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local rootPart = player.Character.HumanoidRootPart
-            local pos, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
-            if onScreen then
-                local distance = (Vector2.new(pos.X, pos.Y) - mousePos).Magnitude
-                if distance <= fovCircle.Radius and distance < closestDistance then
-                    closestPlayer = player
-                    closestDistance = distance
-                end
-            end
-        end
-    end
-
-    return closestPlayer
-end
-
--- New Aimbot function
-local function runAimbot()
-    local function aimAtTarget()
-        local target = getClosestPlayerInFOV()
-        if target and target.Character then
-            local targetPart
-            if aimbotTarget == "Head" and target.Character:FindFirstChild("Head") then
-                targetPart = target.Character.Head
-            elseif aimbotTarget == "Legs" and target.Character:FindFirstChild("RightFoot") then
-                targetPart = target.Character.RightFoot
             else
-                return
+                for i,v in next, players:GetPlayers() do
+                    if v ~= player and v.Team ~= player.Team and v.Character and v.Character.Humanoid.Health > 0 then
+                        local mag = (player.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+                        if mag < closest then
+                            closest = mag
+                            plr = v
+                        end
+                    end
+                end
             end
-
-            local targetPos = targetPart.Position
-            local mousePos = UserInputService:GetMouseLocation()
-            local targetScreenPos = Camera:WorldToViewportPoint(targetPos)
-            local sensitivity = aimbotSensitivity / 100  -- Convert to a 0-1 range
-            
-            -- Check if target is within FOV circle
-            local distanceToTarget = (Vector2.new(targetScreenPos.X, targetScreenPos.Y) - mousePos).Magnitude
-            if distanceToTarget <= fovCircle.Radius then
-                mousemoverel(
-                    (targetScreenPos.X - mousePos.X) * sensitivity,
-                    (targetScreenPos.Y - mousePos.Y) * sensitivity
-                )
-            end
+            return plr
         end
-    end
-
-    while UserInputService:IsKeyDown(aimbotKeybind) do
-        aimAtTarget()
-        RunService.RenderStepped:Wait()
+        
+        local mt = getrawmetatable(game)
+        local oldnc = mt.__namecall
+        setreadonly(mt, false)
+        
+        mt.__namecall = newcclosure(function(self, ...)
+            local args, method = {...}, getnamecallmethod()
+            if method == "FireServer" and args[1] == "ShootSound" then
+                local plr = ClosestPlayer()
+                game:GetService("ReplicatedStorage").Remotes.GunShot:FireServer(
+                    plr,
+                    workspace.CurrentCamera:FindFirstChildOfClass("Model").Name,
+                    require(game:GetService("ReplicatedFirst"):WaitForChild("Shared"):WaitForChild("RemoteUtils")).PackVector(plr.Character.Head.Position),
+                    plr.Character.Head,
+                    "Default"
+                )
+                return oldnc(self, unpack(args))
+            end
+            return oldnc(self, ...)
+        end)
+        
+        setreadonly(mt, true)
+    else
+        local mt = getrawmetatable(game)
+        setreadonly(mt, false)
+        mt.__namecall = oldnc
+        setreadonly(mt, true)
     end
 end
 
--- Function to toggle ESP
 local function toggleESP()
     espEnabled = not espEnabled
+    espButton.Text = "ESP " .. (espEnabled and "[ON]" or "[OFF]")
+    
     if espEnabled then
-        espButton.Text = "Disable ESP"
-        statusLabel.Text = "ESP enabled"
-        coroutine.wrap(runESP)()
+        local enemyteam = game.Workspace.Players:GetChildren()[1]
+        local friendlyteam = game.Workspace.Players:GetChildren()[2]
+        while espEnabled do
+            for _,v in enemyteam:GetDescendants() do
+                if v.ClassName == "Model" and not v:FindFirstChild("Highlight") then
+                    local h = Instance.new("Highlight", v)
+                    h.FillColor = Color3.new(1,0,0)
+                    h.FillTransparency = 0.4
+                end
+            end
+            for _,v in friendlyteam:GetDescendants() do
+                if v.ClassName == "Model" and not v:FindFirstChild("Highlight") then
+                    local h = Instance.new("Highlight", v)
+                    h.FillColor = Color3.new(0.227451, 1, 0.054902)
+                    h.FillTransparency = 0.8
+                end
+            end
+            wait(0.1)
+        end
     else
-        espButton.Text = "Enable ESP"
-        statusLabel.Text = "ESP disabled"
         for _, player in pairs(game.Workspace.Players:GetDescendants()) do
             if player:IsA("Model") and player:FindFirstChild("Highlight") then
                 player.Highlight:Destroy()
@@ -304,100 +221,71 @@ local function toggleESP()
         end
     end
 end
--- Function to toggle Aimbot
-local function toggleAimbot()
-    aimbotEnabled = not aimbotEnabled
-    if aimbotEnabled then
-        aimbotButton.Text = "Disable Aimbot"
-        statusLabel.Text = "Aimbot enabled (Hold " .. aimbotKeybind.Name .. ")"
-        fovCircle.Visible = true
+
+local function toggleChams()
+    chamsEnabled = not chamsEnabled
+    chamsButton.Text = "Chams " .. (chamsEnabled and "[ON]" or "[OFF]")
+    
+    if chamsEnabled then
+        chamsConnection = RunService.Stepped:Connect(function()
+            for i,v in pairs(game.Workspace.CurrentCamera:GetChildren()) do
+                for i2,v2 in pairs(v:GetChildren()) do
+                    if v2.ClassName == "Part" or v2.ClassName == "MeshPart" then
+                        v2.Color = Color3.fromHSV(tick()%5/5,1,1)
+                        v2.Material = Enum.Material.ForceField
+                    end 
+                end
+            end
+            for i,v in pairs(game.Workspace.CurrentCamera:GetDescendants()) do
+                if v.Name == "SightMark" then
+                    v.SurfaceGui.Border.Scope.ImageColor3 = Color3.fromHSV(tick()%5/5,1,1)
+                end
+            end 
+        end)
     else
-        aimbotButton.Text = "Enable Aimbot"
-        statusLabel.Text = "Aimbot disabled"
-        fovCircle.Visible = false
-    end
-end
-
--- Function to handle input
-local function onInputBegan(input, gameProcessed)
-    if input.KeyCode == Enum.KeyCode.Insert then
-        mainFrame.Visible = not mainFrame.Visible
-    elseif input.KeyCode == aimbotKeybind and aimbotEnabled then
-        coroutine.wrap(runAimbot)()
-    end
-end
-
--- Function to set Aimbot keybind
-local function setAimbotKeybind()
-    aimbotKeybindButton.Text = "Press any key"
-    local connection
-    connection = UserInputService.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.Keyboard then
-            aimbotKeybind = input.KeyCode
-            aimbotKeybindButton.Text = input.KeyCode.Name
-            statusLabel.Text = "Aimbot enabled (Hold " .. aimbotKeybind.Name .. ")"
-            connection:Disconnect()
+        if chamsConnection then
+            chamsConnection:Disconnect()
         end
-    end)
-end
-
--- Function to update Aimbot sensitivity
-local function updateAimbotSensitivity()
-    local newSensitivity = tonumber(aimbotSensitivitySlider.Text)
-    if newSensitivity and newSensitivity >= 1 and newSensitivity <= 100 then
-        aimbotSensitivity = newSensitivity
-    else
-        aimbotSensitivitySlider.Text = tostring(aimbotSensitivity)
+        for i,v in pairs(game.Workspace.CurrentCamera:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.Material = Enum.Material.Plastic
+                v.Color = Color3.new(1, 1, 1)
+            elseif v.Name == "SightMark" then
+                v.SurfaceGui.Border.Scope.ImageColor3 = Color3.new(1, 1, 1)
+            end
+        end
     end
 end
 
--- Function to update drag
-local function updateDrag(input)
-    if dragging then
-        local delta = input.Position - dragStart
-        mainFrame.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
-        )
-    end
-end
-
--- Update FOV circle position
-local function updateFOVCircle()
-    fovCircle.Position = UserInputService:GetMouseLocation()
-end
-
--- Function to toggle dropdown visibility
-local function toggleDropdown()
-    dropdownFrame.Visible = not dropdownFrame.Visible
-end
-
--- Function to set aimbot target
-local function setAimbotTarget(target)
-    aimbotTarget = target
-    headButton.Text = target
-    dropdownFrame.Visible = false
-end
-
--- Instant Reload function
-local function instantReload()
+local function toggleInstantReload()
+    instantReloadEnabled = not instantReloadEnabled
+    instantReloadButton.Text = "Instant Reload " .. (instantReloadEnabled and "[ON]" or "[OFF]")
+    
     local gunModule = require(game:GetService("Players").LocalPlayer.PlayerGui.GUI.Client.Functions.Weapons)
     local oldReload = gunModule.reload
-    gunModule.reload = function(...)
-        local args = {...}
-        args[2] = 0
-        return oldReload(unpack(args))
+    
+    if instantReloadEnabled then
+        gunModule.reload = function(...)
+            local args = {...}
+            args[2] = 0
+            return oldReload(unpack(args))
+        end
+    else
+        gunModule.reload = oldReload
     end
-    print("Instant Reload activated")
 end
 
--- Connect input events
-UserInputService.InputBegan:Connect(onInputBegan)
-UserInputService.InputChanged:Connect(updateDrag)
+-- Connect buttons
+silentAimbotButton.MouseButton1Click:Connect(toggleSilentAimbot)
+espButton.MouseButton1Click:Connect(toggleESP)
+chamsButton.MouseButton1Click:Connect(toggleChams)
+instantReloadButton.MouseButton1Click:Connect(toggleInstantReload)
 
 -- Enable dragging
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
 mainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
@@ -412,26 +300,23 @@ mainFrame.InputEnded:Connect(function(input)
     end
 end)
 
--- Connect ESP and Aimbot buttons
-espButton.MouseButton1Click:Connect(toggleESP)
-aimbotButton.MouseButton1Click:Connect(toggleAimbot)
-aimbotKeybindButton.MouseButton1Click:Connect(setAimbotKeybind)
-aimbotSensitivitySlider.FocusLost:Connect(updateAimbotSensitivity)
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
 
--- Connect Head button and dropdown options
-headButton.MouseButton1Click:Connect(toggleDropdown)
-headOption.MouseButton1Click:Connect(function() setAimbotTarget("Head") end)
-legsOption.MouseButton1Click:Connect(function() setAimbotTarget("Legs") end)
-
--- Connect Instant Reload button
-instantReloadButton.MouseButton1Click:Connect(instantReload)
-
--- Update FOV circle
-RunService.RenderStepped:Connect(updateFOVCircle)
-
--- Clean up on script end
-screenGui.Destroying:Connect(function()
-    fovCircle:Remove()
+-- Toggle visibility with Insert key
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Insert then
+        mainFrame.Visible = not mainFrame.Visible
+    end
 end)
 
 print("Script loaded. Press Insert to toggle menu visibility.")
